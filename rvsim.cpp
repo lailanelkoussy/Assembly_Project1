@@ -20,7 +20,7 @@ unsigned int pc = 0x0;
 
 char memory[64*1024];	// only 64KB of memory located at address 0
 
-void emitError(char *s)
+void emitError(string s)
 {
     cout << s;
     exit(0);
@@ -79,28 +79,27 @@ void instDecExec(unsigned int instWord)
 int main(int argc, char *argv[]){
 
     unsigned int instWord=0;
-    ifstream inFile;
-    ofstream outFile;
+    ifstream input;
 
     if(argc<1) emitError("use: rvsim <machine_code_file_name>\n");
 
-    inFile.open(argv[1], ios::in | ios::binary | ios::ate); //file name is in argv[1], it's a binary file and output starts from the end of the file
+    input.open(argv[1], ios::in | ios::binary); //file name is in argv[1], it's a binary file and output starts from the end of the file
 
-    if(inFile.is_open())
+    if(input.is_open())
     {
-        int fsize = inFile.tellg(); //file size
+        int fsize = input.tellg(); //file size
 
-        inFile.seekg (0, inFile.beg);
-        if(!inFile.read((char *)memory, fsize)) emitError("Cannot read from input file\n");
+        input.seekg (0, input.beg);
+        if(!input.read((char *)memory, fsize)) emitError("Cannot read from input file\n");
 
         while(true){
-            instWord = 	(unsigned char)memory[pc] |             //todo: wtf
+            instWord = 	(unsigned char)memory[pc] |
                           (((unsigned char)memory[pc+1])<<8) |
                           (((unsigned char)memory[pc+2])<<16) |
                           (((unsigned char)memory[pc+3])<<24);
             pc += 4;
             // remove the following line once you have a complete simulator
-            if(pc==32) break;			// stop when PC reached address 32 TODO: WTF
+            if(pc==32) break;			// stop when PC reached address 32
             instDecExec(instWord);
         }
 

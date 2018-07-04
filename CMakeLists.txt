@@ -3,4 +3,4 @@ project(Project_1)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(Project_1 rvsim.cpp Instruction.cpp Instruction.h)
+add_executable(Project_1 rvsim.cpp Sim.cpp Sim.h)

@@ -12,15 +12,16 @@
 #include <fstream>
 #include "stdlib.h"
 #include <iomanip>
+#include "Sim.h"
+
 
 using namespace std;
 
-int regs[32]={0};
 unsigned int pc = 0x0;
 
-char memory[64*1024];	// only 64KB of memory located at address 0
+char memory[64*1024] = {0};	// only 64KB of memory located at address 0
 
-void emitError(string s)
+void emitError(const string &s)
 {
     cout << s;
     exit(0);
@@ -80,12 +81,23 @@ int main(int argc, char *argv[]){
 
     unsigned int instWord=0;
     ifstream input;
+    int size;
+    char temp;
 
     if(argc<1) emitError("use: rvsim <machine_code_file_name>\n");
 
-    input.open(argv[1], ios::in | ios::binary); //file name is in argv[1], it's a binary file and output starts from the end of the file
+    input.open(argv[1], ios::in | ios::binary); //file name is in argv[1], it's a binary file
 
-    if(input.is_open())
+    for (int i = 0; (input.good()) && i < 64*1024; i++) {
+    input>>temp;
+    memory[i]= temp;
+    size = i+1;
+    }
+
+    input.close(); //memory is now filled with all instructions
+    Sim simu(memory,size); //the simulator is constructed using the memory and memory size
+
+    /*if(input.is_open())
     {
         int fsize = input.tellg(); //file size
 
@@ -107,5 +119,5 @@ int main(int argc, char *argv[]){
         for(int i=0;i<32;i++)
             cout << "x" << dec << i << ": \t"<< "0x" << hex << std::setfill('0') << std::setw(8) << regs[i] << "\n";
 
-    } else emitError("Cannot access input file\n");
+    } else emitError("Cannot access input file\n");*/
 }

@@ -17,7 +17,6 @@
 
 using namespace std;
 
-unsigned int pc = 0x0;
 
 
 void emitError(const string &s)

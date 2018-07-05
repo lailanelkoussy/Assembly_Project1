@@ -9,6 +9,8 @@
 using namespace std;
 int regs[32];
 char* memory;
+unsigned int pc;
+bool running = true;
 
 class Sim {
 public:
@@ -16,14 +18,13 @@ public:
     void run();
 
 private:
-    int pc, size;
+    int size;
     struct Instruction {
 
         enum Type { R, I, S, SB, U, UJ };
 
         unsigned int rd, rs1, rs2, funct3, funct7, opcode;
         unsigned int I_imm, S_imm, B_imm, U_imm, J_imm;
-        unsigned int address;
         unsigned int bit32;                 //the 32 bit word
         string ins; //instruction in words
         Type type;
@@ -51,6 +52,11 @@ private:
         void sw ();
         //shift instructions
         void sll();
+        void slli();
+        void srl();
+        void srli();
+        void sra();
+        void srai();
         //arithmetic instructions
         void add();
         void addi();
@@ -75,7 +81,6 @@ private:
         void jal();
         //system instructions
         void ecall();
-
 
 
     };

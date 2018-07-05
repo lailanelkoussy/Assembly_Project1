@@ -110,7 +110,7 @@ void Sim::Instruction::Sextract() {
     rs2 = (bit32 >> 25) & 0x0000001F;
 
     temp = (bit32 >> 30) & 0x0000007F;
-    temp = temp >> 5;
+    temp = temp << 5;
     S_imm = S_imm | temp; //concatenating the immediate value
 
 }
@@ -125,11 +125,83 @@ void Sim::Instruction::lb() {
     regs[rd] = memory[temp + I_imm];
 }
 
+void Sim::Instruction::lh() {
+    int temp1, temp2;
+    temp1 = regs[rs1] + I_imm; //address is in temp
+    temp2 = regs[temp1+1];//last 4 bits in temp 2
+    temp2 = temp2<<4; //temp 2 shifted by one byte
+    temp2 = temp2 | regs[temp1]; //temp2 now contains the half word
+    regs[rd] = temp2;
+
+
+}
+
+void Sim::Instruction::lw() {
+    int temp1, temp2, temp3;
+    temp1 = regs[rs1] + I_imm; //address in temp 1
+
+    for (int i = 4; i<0; i--)
+    { temp3 = temp3<<4;
+      temp2 = regs[temp1+i-1]; //taking the bytes in from the left
+      temp3 = temp3 | temp2;
+    }
+
+}
+
 void Sim::Instruction::sb() {
     int temp;
     temp = regs[rs2]; //address is in temp
-    memory[temp+ S_imm] = regs[rs1];
+    memory[temp+ S_imm] = char(regs[rs1]);
 
+}
+
+void Sim::Instruction::sh(){
+    int temp1;
+    temp1 = regs[rs2] + S_imm; //address in temp
+    memory[temp1] = char(regs[rs1] & 0x0000FFFF);
+    memory[temp1+1] = char(regs[rs1]>>16);
+
+}
+
+void Sim:: Instruction:: sll()
+{
+    regs[rd] = (unsigned int)regs[rs1]<< (unsigned int)regs[rs2];
+}
+void Sim:: Instruction:: slli()
+{
+    regs[rd] = (unsigned int)regs[rs1] << (unsigned int)I_imm;
+}
+void Sim:: Instruction:: srl()
+{
+    regs[rd] = (unsigned int)regs[rs1] >> (unsigned int)regs[rs2];
+}
+void Sim:: Instruction:: srli()
+{
+    regs[rd] = (unsigned int)regs[rs1] >> (unsigned int)I_imm;
+}
+void Sim:: Instruction:: sra()
+{
+    int temp= 1 & regs[rs1];
+    if (temp)
+    {
+        for (int i=0; i<regs[rs2]; i++)
+            regs[rd] = (regs[rs1]>>1 | 0x80000000);
+
+    }
+    else
+        srl();
+}
+void Sim:: Instruction:: srai()
+{
+    int temp= 1 & regs[rs1];
+    if (temp)
+    {
+        for (int i=0; i<I_imm; i++)
+            regs[rd] = (regs[rs1]>>1 | 0x80000000);
+
+    }
+    else
+        srl();
 }
 
 void Sim::Instruction::add() {
@@ -142,13 +214,87 @@ void Sim::Instruction::addi() {
 
 }
 
-void::Sim::Instruction::sub() {
+void Sim::Instruction::sub() {
+
     regs[rd] = regs[rs1] - regs[rs2];
 }
 
-void Sim::run() {
-    while (pc<size){
+void Sim::Instruction::Or()  {
 
+    regs[rd] = unsigned int(regs[rs1]) | regs[rs2];
+}
 
+void Sim::Instruction::ori() {
+
+    regs[rd] = unsigned int(regs[rs1]) | I_imm;
+}
+
+void Sim::Instruction::andi() {
+
+    regs[rd] =unsigned int(regs[rs1]) & I_imm;
+}
+
+void Sim::Instruction::aNd() {
+
+    regs[rd] = unsigned int(regs[rs1]) & regs[rs2];
+}
+
+void Sim::Instruction::xOr() {
+
+    regs[rd] = unsigned int(regs[rs1])^ regs[rs2];
+}
+
+void Sim::Instruction::xori() {
+
+    regs[rd] = unsigned int(regs[rs1]) ^ I_imm;
+}
+
+void Sim::Instruction::slt() {
+    if (regs[rs1]<regs[rs2])
+        regs[rd] = 1;
+    else regs[rd] = 0;
+
+}
+
+void Sim::Instruction::slti() {
+    if (regs[rs1]<I_imm)
+        regs[rd] = 1;
+    else regs[rd] = 0;
+
+}
+
+void Sim::Instruction::beq() {
+    if (rs1 == rs2)
+        pc+= B_imm;
+}
+
+void Sim::Instruction::bne() {
+    if (rs1 != rs2)
+        pc+= B_imm;
+}
+
+void Sim::Instruction::j() {
+    pc = J_imm;
+}
+
+void Sim::Instruction::jal() {
+    regs[1] = pc; //saving current location in $ra
+    pc = J_imm;
+
+}
+
+void Sim::Instruction:: ecall()
+{
+    switch (regs[17])
+    {
+        case 1:
+            cout<< hex<< regs[2];
+            break;
+        case 4:
+            cout<< memory[regs[2]];
+            break;
+        case 10:
+            running = false;
+            break;
     }
 }

@@ -19,7 +19,6 @@ using namespace std;
 
 unsigned int pc = 0x0;
 
-char memory[64*1024] = {0};	// only 64KB of memory located at address 0
 
 void emitError(const string &s)
 {

@@ -33,6 +33,12 @@ private:
 
         Instruction();
         void execute();
+        void Rexecute();
+        void Iexecute();
+        void Sexecute();
+        void SBexecute();
+        void Uexecute();
+        void UJexecute();
 
         void detType(); //function that determines the type of the instruction and sets the opcode value, then calls relevant extract function
         void Rextract();
@@ -77,7 +83,10 @@ private:
         void andi();
         //compare instructions
         void slt();
+        void sltu();
         void slti();
+        void sltiu();
+
         //branch instructions
         void beq();
         void bne();

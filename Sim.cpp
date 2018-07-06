@@ -20,6 +20,189 @@ Sim::Instruction::Instruction() {
     translate();
 }
 
+void Sim::Instruction::execute() {
+    switch(type){
+        case R:
+            Rexecute();
+            break;
+        case I:
+            Iexecute();
+            break;
+        case S:
+            Sexecute();
+            break;
+        case SB:
+            SBexecute();
+            break;
+        case U:
+            Uexecute();
+            break;
+        case UJ:
+            UJexecute();
+            break;
+    }
+
+
+}
+
+void Sim::Instruction::Rexecute() {
+    switch (funct3) {
+        case 0x0:
+            if (!funct7)
+                sub();
+            else add();
+            break;
+        case 0x1:
+            sll();
+            break;
+        case 0x2:
+            slt();
+            break;
+        case 0x3:
+            sltu();
+            break;
+        case 0x4:
+            xOr();
+            break;
+        case 0x5:
+            if (!funct7)
+                srl();
+            else sra();
+            break;
+        case 0x6:
+            Or();
+            break;
+        default:
+           aNd();
+            break;
+
+    }
+
+}
+
+void Sim::Instruction::Iexecute() {
+    if (opcode == 0x3){
+        switch (funct3){
+            case 0x0:
+                lb();
+                break;
+
+            case 0x1:
+               lh();
+                break;
+
+            case 0x2:
+                lw();
+                break;
+
+            case 0x4:
+                lbu();
+                break;
+
+            default:
+                lhu();
+                break;
+        }
+    }
+    else {
+
+        switch (funct3){
+            case 0x0:
+                addi();
+                break;
+
+            case 0x2:
+               slti();
+                break;
+
+            case 0x3:
+                sltiu();
+                break;
+
+            case 0x4:
+                xori();
+                break;
+
+            case 0x6:
+                ori();
+                break;
+
+            case 0x7:
+                andi();
+                break;
+
+            case 0x1:
+                slli();
+                break;
+
+            default:
+                if (!funct7)
+                    srli();
+                else srai();
+                break;
+
+        }
+    }
+}
+
+void Sim::Instruction::Sexecute() {
+    switch (funct3){
+        case 0x0:
+            sb();
+            break;
+        case 0x1:
+            sh();
+            break;
+        case 0x2:
+            sw();
+            break;
+    }
+}
+
+void Sim::Instruction::SBexecute() {
+    switch(funct3){
+        case 0x0:
+            beq();
+            break;
+
+        case 0x1:
+            bne();
+            break;
+
+        case 0x4:
+            blt();
+            break;
+
+        case 0x5:
+           bge();
+            break;
+
+        case 0x6:
+            bltu();
+            break;
+
+        case 0x7:
+            bgeu();
+            break;
+
+
+    }
+
+}
+
+void Sim::Instruction::Uexecute() {
+    if (opcode == 0x37)
+        lui();
+    else
+        auipc();
+}
+
+void Sim::Instruction::UJexecute() {
+    if (opcode == 0x6F)
+       jal();
+    else jalr();
+}
+
 void Sim::Instruction::detType() {
     opcode = this->bit32 & 0x0000007F;
     switch (opcode){ //this switches on the opcode of the instruction
@@ -296,11 +479,9 @@ void Sim::Instruction::translate() {
                     ins = "bltu x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
                     break;
 
-                case 0x7:
+                default:
                     ins = "bgeu x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
                     break;
-
-
             }
 
             break;
@@ -508,11 +689,19 @@ void Sim::Instruction::slt() {
 
 }
 
+void Sim::Instruction::sltu() {
+    slt();
+}
+
 void Sim::Instruction::slti() {
     if (regs[rs1]<I_imm)
         regs[rd] = 1;
     else regs[rd] = 0;
 
+}
+
+void Sim::Instruction::sltiu(){
+    slti();
 }
 
 void Sim::Instruction::beq() {

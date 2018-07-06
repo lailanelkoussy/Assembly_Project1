@@ -17,6 +17,8 @@ public:
     Sim(char[], int&);
     void run();
 
+
+
 private:
     int size;
     struct Instruction {
@@ -29,6 +31,9 @@ private:
         string ins; //instruction in words
         Type type;
 
+        Instruction();
+        void execute();
+
         void detType(); //function that determines the type of the instruction and sets the opcode value, then calls relevant extract function
         void Rextract();
         void Iextract();
@@ -38,6 +43,7 @@ private:
         void UJextract();
 
         void translate(); //function that translates the instruction into true RISC-V instruction
+
 
         //load instructions
         void lb ();
@@ -75,6 +81,10 @@ private:
         //branch instructions
         void beq();
         void bne();
+        void blt();
+        void bge();
+        void bltu();
+        void bgeu();
         //Jump instructions
         void jal();
         void jalr();

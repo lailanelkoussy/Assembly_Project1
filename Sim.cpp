@@ -15,6 +15,11 @@ Sim::Sim(char a[], int &size) {
 
 }
 
+Sim::Instruction::Instruction() {
+    detType();
+    translate();
+}
+
 void Sim::Instruction::detType() {
     opcode = this->bit32 & 0x0000007F;
     switch (opcode){ //this switches on the opcode of the instruction
@@ -54,6 +59,7 @@ void Sim::Instruction::detType() {
 
 void Sim::Instruction::Rextract() {
 
+
     rd = (bit32>>7) & 0x0000001F;
     funct3 = (bit32>>12) & 0x00000007;
     rs1 = (bit32>> 15) & 0x0000001F;
@@ -64,11 +70,19 @@ void Sim::Instruction::Rextract() {
 }
 
 void Sim::Instruction::Iextract() {
-
     rd = (bit32>>7) & 0x0000001F;
     funct3 = (bit32>>12) & 0x00000007;
     rs1 = (bit32>> 15) & 0x0000001F;
-    I_imm =  (bit32>> 20) & 0x00000FFF;
+
+    if (opcode == 0x3)
+        I_imm =  (bit32>> 20) & 0x00000FFF;
+    else {
+        I_imm = (bit32>>20) & 0x1F;
+        funct7 = (bit32>>25) & 0x7F;
+
+    }
+
+
 
 
 }
@@ -137,7 +151,173 @@ void Sim::Instruction::SBextract() {
 
 }
 
+void Sim::Instruction::Uextract() {
+    rd = (bit32>>7) & 0x1F;
+    U_imm = bit32>>12;
+    U_imm = U_imm<<12;
+
+}
+
 void Sim::Instruction::translate() {
+
+    switch (type) {
+
+        case R:
+            switch (funct3) {
+                case 0x0:
+                    if (!funct7)
+                        ins = "sub x" + rd + ','+ '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    else ins = "add x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x1:
+                    ins = "sll x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x2:
+                    ins = "slt x" + rd + ',' +  '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x3:
+                    ins = "sltu x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x4:
+                    ins = "xor x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x5:
+                    if (!funct7)
+                        ins = "srl x" + rd +',' +  '' + 'x' + rs1 +',' +  ' ' + 'x' + rs2;
+                    else ins = "sra x" + rd + ',' +  '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                case 0x6:
+                    ins = "or x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+                default:
+                    ins = "and x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + 'x' + rs2;
+                    break;
+
+            }
+            break;
+        case I:
+           if (opcode == 0x3){
+               switch (funct3){
+                   case 0x0:
+                       ins = "lb x" + rd + '' + ',' +rs1+ '(' + 'x' + I_imm + ')';
+                       break;
+
+                   case 0x1:
+                       ins = "lh x" + rd + '' + ',' +rs1+ '(' + 'x' + I_imm + ')';
+                       break;
+
+                   case 0x2:
+                       ins = "lw x" + rd + '' + ',' +rs1+ '(' + 'x' + I_imm + ')';
+                       break;
+
+                   case 0x4:
+                       ins = "lbu x" + rd + '' + ',' +rs1+ '(' + 'x' + I_imm + ')';
+                       break;
+
+                   default:
+                       ins = "lhu x" + rd + '' + ',' +rs1+ '(' + 'x' + I_imm + ')';
+                       break;
+               }
+           }
+               else {
+
+               switch (funct3){
+                   case 0x0:
+                       ins = "addi x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x2:
+                       ins = "slti x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x3:
+                       ins = "sltiu x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x4:
+                       ins = "xori x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x6:
+                       ins = "ori x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x7:
+                       ins = "andi x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   case 0x1:
+                       ins = "slli x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+                   default:
+                       if (!funct7)
+                           ins = "srli x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       else ins = "srai x" + rd + ',' + '' + 'x' + rs1 + ',' + ' ' + I_imm;
+                       break;
+
+               }
+
+           }
+
+            break;
+        case S:
+            switch (funct3){
+                case 0x0:
+                    ins = "sb x" + rd + '' + ',' +rs1+ '(' + 'x' + S_imm+ ')';
+                    break;
+                case 0x1:
+                    ins = "sh x" + rd + '' + ',' +rs1+ '(' + 'x' + S_imm+ ')';
+                    break;
+                case 0x2:
+                    ins = "sw x" + rd + '' + ',' +rs1+ '(' + 'x' + S_imm+ ')';
+                    break;
+            }
+            break;
+        case SB:
+            switch(funct3){
+                case 0x0:
+                    ins = "beq x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+                case 0x1:
+                    ins = "bne x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+                case 0x4:
+                    ins = "blt x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+                case 0x5:
+                    ins = "bge x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+                case 0x6:
+                    ins = "bltu x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+                case 0x7:
+                    ins = "bgeu x" + rd + '' + ',' +rs1+ '(' + 'x' + B_imm+ ')';
+                    break;
+
+
+            }
+
+            break;
+        case U:
+            if (opcode == 0x37)
+                ins = "lui x" + rd + '' + ',' + U_imm;
+            else
+                ins = "auipc x" + rd + '' + ',' + U_imm;
+
+            break;
+        case UJ:
+            if (opcode == 0x6F)
+                ins = "jal x" + rd;
+            else ins = "jalr x" + rd;
+            break;
+
+    }
 
 }
 
@@ -148,8 +328,7 @@ void Sim::Instruction::lb() {
     temp1 = temp2 & 0x80; //sign bit is in temp;
     if (temp1)
     { temp2 = temp2 | 0xFFFFFF00; //sign extension
-      regs[rd] = temp2;
-        makezero(); }
+      regs[rd] = temp2; }
 
     else lbu();
 }
@@ -283,6 +462,15 @@ void Sim::Instruction::sub() {
     regs[rd] = regs[rs1] - regs[rs2];
 }
 
+void Sim::Instruction::lui(){
+    regs[rd] = U_imm;
+}
+
+void Sim::Instruction::auipc() {
+    regs[rd] = memory[pc+U_imm];
+    pc+=U_imm;
+}
+
 void Sim::Instruction::Or()  {
 
     regs[rd] = (unsigned int)(regs[rs1]) | regs[rs2];
@@ -328,14 +516,36 @@ void Sim::Instruction::slti() {
 }
 
 void Sim::Instruction::beq() {
-    if (rs1 == rs2)
+    if (regs[rs1] == regs[rs2])
         pc+= B_imm;
 }
 
 void Sim::Instruction::bne() {
-    if (rs1 != rs2)
+    if (regs[rs1]!= regs[rs2])
         pc+= B_imm;
 }
+
+void Sim::Instruction::blt() {
+    if (regs[rs1]< regs[rs2])
+        pc+= B_imm;
+}
+
+void Sim::Instruction::bge() {
+    if (regs[rs1]>= regs[rs2])
+        pc+= B_imm;
+}
+
+void Sim::Instruction::bgeu() {
+    bge();
+}
+
+void Sim::Instruction::bltu() {
+    blt();
+}
+
+
+
+
 
 void Sim::Instruction::jal() {
     regs[rd] = pc+4;

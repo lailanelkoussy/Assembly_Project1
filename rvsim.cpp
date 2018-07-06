@@ -25,55 +25,7 @@ void emitError(const string &s)
     exit(0);
 }
 
-void printPrefix(unsigned int instA, unsigned int instW){ //
-    cout << "0x" << hex << std::setfill('0') << std::setw(8) << instA << "\t0x" << std::setw(8) << instW;
-}
-void instDecExec(unsigned int instWord)
-{
-    unsigned int rd, rs1, rs2, funct3, funct7, opcode;
-    unsigned int I_imm, S_imm, B_imm, U_imm, J_imm;
-    unsigned int address;
 
-    unsigned int instPC = pc - 4;
-
-    opcode = instWord & 0x0000007F;
-    rd = (instWord >> 7) & 0x0000001F;
-    funct3 = (instWord >> 12) & 0x00000007;
-    rs1 = (instWord >> 15) & 0x0000001F;
-    rs2 = (instWord >> 20) & 0x0000001F;
-
-    // — inst[31] — inst[30:25] inst[24:21] inst[20]
-    I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
-
-    printPrefix(instPC, instWord);
-
-    if(opcode == 0x33){		// R Instructions
-        switch(funct3){
-            case 0: if(funct7 == 32) {
-                    cout << "\tSUB\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-                    regs[rd] = regs[rs1] - regs[rs2];
-                }
-                else {
-                    cout << "\tADD\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-                    regs[rd] = regs[rs1] + regs[rs2];
-                }
-                break;
-            default:
-                cout << "\tUnkown R Instruction \n";
-        }
-    } else if(opcode == 0x13){	// I instructions
-        switch(funct3){
-            case 0:	cout << "\tADDI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
-                regs[rd] = regs[rs1] + (int)I_imm;
-                break;
-            default:
-                cout << "\tUnkown I Instruction \n";
-        }
-    } else {
-        cout << "\tUnkown Instruction \n";
-    }
-
-}
 
 int main(int argc, char *argv[]){
 
@@ -95,27 +47,6 @@ int main(int argc, char *argv[]){
     input.close(); //memory is now filled with all instructions
     Sim simu(memory,size); //the simulator is constructed using the memory and memory size
 
-    /*if(input.is_open())
-    {
-        int fsize = input.tellg(); //file size
 
-        input.seekg (0, input.beg);
-        if(!input.read((char *)memory, fsize)) emitError("Cannot read from input file\n");
-
-        while(true){
-            instWord = 	(unsigned char)memory[pc] |
-                          (((unsigned char)memory[pc+1])<<8) |
-                          (((unsigned char)memory[pc+2])<<16) |
-                          (((unsigned char)memory[pc+3])<<24);
-            pc += 4;
-            // remove the following line once you have a complete simulator
-            if(pc==32) break;			// stop when PC reached address 32
-            instDecExec(instWord);
-        }
-
-        // dump the registers
-        for(int i=0;i<32;i++)
-            cout << "x" << dec << i << ": \t"<< "0x" << hex << std::setfill('0') << std::setw(8) << regs[i] << "\n";
-
-    } else emitError("Cannot access input file\n");*/
+    return 0;
 }

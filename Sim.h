@@ -29,8 +29,7 @@ private:
         string ins; //instruction in words
         Type type;
 
-        void detType(); //function that determines the type of the instruction and sets the opcode value
-        void extract(); //extracts the relevant fields from the intruction and sets them
+        void detType(); //function that determines the type of the instruction and sets the opcode value, then calls relevant extract function
         void Rextract();
         void Iextract();
         void Sextract();
@@ -77,10 +76,12 @@ private:
         void beq();
         void bne();
         //Jump instructions
-        void j();
         void jal();
+        void jalr();
         //system instructions
         void ecall();
+
+        void makezero(); //function that makes sure x0 is zerox
 
 
     };
